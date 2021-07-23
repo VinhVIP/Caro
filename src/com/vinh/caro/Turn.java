@@ -5,6 +5,6 @@ package com.vinh.caro;
  * On 23/07/2021
  */
 
-public enum XO {
+public enum Turn {
     X, O;
 }

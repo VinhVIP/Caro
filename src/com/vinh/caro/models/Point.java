@@ -1,6 +1,6 @@
 package com.vinh.caro.models;
 
-import com.vinh.caro.XO;
+import com.vinh.caro.Turn;
 
 /**
  * Create by VinhIT
@@ -9,12 +9,12 @@ import com.vinh.caro.XO;
 
 public class Point {
     private int x, y;
-    private XO xo;
+    private Turn turn;
 
-    public Point(int x, int y, XO xo) {
+    public Point(int x, int y, Turn turn) {
         this.x = x;
         this.y = y;
-        this.xo = xo;
+        this.turn = turn;
     }
 
     public int getX() {
@@ -33,11 +33,11 @@ public class Point {
         this.y = y;
     }
 
-    public XO getXo() {
-        return xo;
+    public Turn getXo() {
+        return turn;
     }
 
-    public void setXo(XO xo) {
-        this.xo = xo;
+    public void setXo(Turn turn) {
+        this.turn = turn;
     }
 }
