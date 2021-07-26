@@ -5,6 +5,9 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
+import java.util.Random;
+
+import static com.vinh.caro.utils.Constants.*;
 
 /**
  * Create by VinhIT
@@ -13,25 +16,20 @@ import java.awt.event.MouseMotionAdapter;
 
 public class DrawCanvas extends Canvas {
 
-    public static final int CELL_SIZE = 40;
-    public static final int WIDTH = 20;
-    public static final int HEIGHT = 20;
-
-    public static final int CELL_X = 1;
-    public static final int CELL_O = 2;
-
-    public static final int GRID_COLOR = 0xff00ff;
+    private Paint paint;
 
     private int countXO = 0;
-    //    int[][] board = new int[WIDTH][HEIGHT];
-//    private Point lastHover = null;
     private int lastX = -1, lastY = -1;
 
     Table table;
 
+    private boolean isUserFirst, isXFirst;
+    private int caroX = -1, caroO = -1;
 
-    public DrawCanvas() {
-        setPreferredSize(new Dimension(810, 810));
+    public DrawCanvas(Paint paint) {
+        this.paint = paint;
+
+        setPreferredSize(new Dimension(BOARD_WIDTH, BOARD_HEIGHT));
         setBackground(Color.WHITE);
 
         addMouseListener(new MyMouseAdapter());
@@ -41,12 +39,48 @@ public class DrawCanvas extends Canvas {
 
     }
 
+    public void setup(boolean isUserFirst, boolean isXFirst) {
+        this.isUserFirst = isUserFirst;
+        this.isXFirst = isXFirst;
+
+        if (isUserFirst) {
+            if (isXFirst) {
+                caroX = USER;
+                caroO = COMPUTER;
+            } else {
+                caroX = COMPUTER;
+                caroO = USER;
+            }
+        } else {
+            if (isXFirst) {
+                caroX = COMPUTER;
+                caroO = USER;
+            } else {
+                caroO = COMPUTER;
+                caroX = USER;
+            }
+
+            computerFirst();
+        }
+    }
+
+    private void computerFirst() {
+        Random r = new Random();
+        int x = Math.abs(r.nextInt()) % NUM_COLS;
+        int y = Math.abs(r.nextInt()) % NUM_ROWS;
+
+        table.cell[x][y] = COMPUTER;
+        drawCell(getGraphics(), x, y, true);
+    }
+
     private void drawGrid(Graphics g) {
         g.setColor(new Color(GRID_COLOR));
 
-        for (int i = 0; i <= WIDTH; i++) {
-            g.drawLine(i * CELL_SIZE, 0, i * CELL_SIZE, HEIGHT * CELL_SIZE);
-            g.drawLine(0, i * CELL_SIZE, WIDTH * CELL_SIZE, i * CELL_SIZE);
+        for (int i = 0; i <= NUM_ROWS; i++) {
+            g.drawLine(0, i * CELL_SIZE, NUM_COLS * CELL_SIZE, i * CELL_SIZE);
+        }
+        for (int i = 0; i <= NUM_COLS; i++) {
+            g.drawLine(i * CELL_SIZE, 0, i * CELL_SIZE, NUM_ROWS * CELL_SIZE);
         }
     }
 
@@ -54,9 +88,9 @@ public class DrawCanvas extends Canvas {
         if (!insideBoard(x, y)) return;
 
         if (isHover) {
-            g.setColor(Color.CYAN);
+            g.setColor(new Color(CELL_HOVER_COLOR));
         } else {
-            g.setColor(Color.WHITE);
+            g.setColor(new Color(CELL_COLOR));
         }
         g.fillRect(x * CELL_SIZE + 1, y * CELL_SIZE + 1, CELL_SIZE - 1, CELL_SIZE - 1);
         drawXO(x, y);
@@ -65,11 +99,11 @@ public class DrawCanvas extends Canvas {
     private void drawXO(int x, int y) {
         Graphics g = getGraphics();
 
-        if (table.cell[x][y] == CELL_X) {
+        if (table.cell[x][y] == caroX) {
             g.setColor(Color.RED);
             g.drawLine(x * CELL_SIZE + 8, y * CELL_SIZE + 8, (x + 1) * CELL_SIZE - 8, (y + 1) * CELL_SIZE - 8);
             g.drawLine((x + 1) * CELL_SIZE - 8, y * CELL_SIZE + 8, x * CELL_SIZE + 8, (y + 1) * CELL_SIZE - 8);
-        } else if (table.cell[x][y] == CELL_O) {
+        } else if (table.cell[x][y] == caroO) {
             g.setColor(Color.GREEN);
             g.drawOval(x * CELL_SIZE + 7, y * CELL_SIZE + 7, 26, 26);
             g.drawOval(x * CELL_SIZE + 8, y * CELL_SIZE + 8, 24, 24);
@@ -134,16 +168,19 @@ public class DrawCanvas extends Canvas {
         super.paint(g);
 
         drawGrid(g);
+        for (int i = 0; i < NUM_COLS; i++)
+            for (int j = 0; j < NUM_ROWS; j++)
+                drawXO(i, j);
     }
 
     private void reset() {
-        for (int i = 0; i < WIDTH; i++)
-            for (int j = 0; j < HEIGHT; j++)
+        for (int i = 0; i < NUM_COLS; i++)
+            for (int j = 0; j < NUM_ROWS; j++)
                 table.cell[i][j] = 0;
 
         Graphics g = getGraphics();
         g.setColor(Color.WHITE);
-        g.fillRect(0, 0, WIDTH * CELL_SIZE, HEIGHT * CELL_SIZE);
+        g.fillRect(0, 0, NUM_COLS * CELL_SIZE, NUM_ROWS * CELL_SIZE);
         drawGrid(g);
     }
 
@@ -296,6 +333,30 @@ public class DrawCanvas extends Canvas {
 //        return CELL_O;
 //    }
 
+    private boolean checkEndGame(int x, int y) {
+        if (countXO == NUM_ROWS * NUM_COLS) {
+            JOptionPane.showMessageDialog(null, "Draw!");
+            reset();
+            paint.newGame();
+            return true;
+        } else if (table.checkWin()) {
+            drawCell(getGraphics(), x, y, false);
+
+            x = table.wx;
+            y = table.wy;
+            int k = 0;
+            while (k++ < 5) {
+                drawCell(getGraphics(), x, y, true);
+                x += table.wdx;
+                y += table.wdy;
+            }
+            JOptionPane.showMessageDialog(null, "Computer win!");
+            reset();
+            paint.newGame();
+            return true;
+        }
+        return false;
+    }
 
     private int lastComputerX = -1, lastComputerY = -1;
 
@@ -310,54 +371,32 @@ public class DrawCanvas extends Canvas {
 
             if (insideBoard(x, y) && table.cell[x][y] == 0) {
 
-                table.cell[x][y] = CELL_X;
+                table.cell[x][y] = USER;
+                countXO++;
                 drawCell(getGraphics(), x, y, true);
 
                 drawCell(getGraphics(), lastComputerX, lastComputerY, false);
 
-                if (table.checkWin()) {
-
-                    x = table.wx;
-                    y = table.wy;
-                    int k = 0;
-                    while (k++ < 5) {
-                        drawCell(getGraphics(), x, y, true);
-                        x += table.wdx;
-                        y += table.wdy;
-                    }
-                    JOptionPane.showMessageDialog(null, "You win!");
-                    reset();
-                } else {
+                if (!checkEndGame(x, y)) {
                     table.findSolution();
+
                     try {
                         Thread.sleep(300);
                     } catch (Exception ex) {
                         ex.printStackTrace();
                     }
-                    table.cell[table.resX][table.resY] = CELL_O;
+
+                    table.cell[table.resX][table.resY] = COMPUTER;
+                    countXO++;
                     drawCell(getGraphics(), table.resX, table.resY, true);
 
                     lastComputerX = table.resX;
                     lastComputerY = table.resY;
 
-                    if (table.checkWin()) {
-                        drawCell(getGraphics(), x, y, false);
-
-                        x = table.wx;
-                        y = table.wy;
-                        int k = 0;
-                        while (k++ < 5) {
-                            drawCell(getGraphics(), x, y, true);
-                            x += table.wdx;
-                            y += table.wdy;
-                        }
-                        JOptionPane.showMessageDialog(null, "Computer win!");
-                        reset();
-                    }
+                    checkEndGame(x, y);
                 }
+
             }
-
-
         }
     }
 
@@ -386,9 +425,9 @@ public class DrawCanvas extends Canvas {
 
     private boolean insideBoard(int x, int y) {
         return x >= 0 &&
-                x < WIDTH &&
+                x < NUM_COLS &&
                 y >= 0 &&
-                y < HEIGHT;
+                y < NUM_ROWS;
     }
 
 }

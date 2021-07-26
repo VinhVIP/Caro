@@ -2,6 +2,8 @@ package com.vinh.caro;
 
 import java.util.Random;
 
+import static com.vinh.caro.utils.Constants.*;
+
 /**
  * Create by VinhIT
  * On 24/07/2021
@@ -11,19 +13,19 @@ public class Table {
     int[][] cell;
     int[][] score;
     int[][] score1;
-    int m, n, kh, resX, resY;
+    int m, n, turn, resX, resY;
     int wx, wy, wdx, wdy;
-    // kh: Giắ trị cell của ô ( 1 hoặc 2 : X hoặc O)
     Random r;
 
     public Table() {
-        m = DrawCanvas.WIDTH;
-        n = DrawCanvas.HEIGHT;
+        m = NUM_ROWS;
+        n = NUM_COLS;
 
         cell = new int[m][n];
         score = new int[m][n];
         score1 = new int[m][n];
 
+        // Gán mặc định bàn cở chưa có gì
         for (int i = 0; i < m; i++)
             for (int j = 0; j < n; j++)
                 cell[i][j] = 0;
@@ -31,113 +33,125 @@ public class Table {
         r = new Random();
     }
 
-    void tinh(int x, int y, int dx, int dy) {
-        int i, j, k, d1, d2, s;
+    /**
+     * Tính toán ước lượng giá trị nguy hiểm của mỗi ô trên đường duyệt 5
+     *
+     * @param x  tọa độ X xuất phát duyệt
+     * @param y  tọa độ Y xuất phát duyệt
+     * @param dx hướng duyệt theo chiều X
+     * @param dy hướng duyệt theo chiều Y
+     */
+    void calculate(int x, int y, int dx, int dy) {
+        int cntPlayer = 0, cntComputer = 0;
+        // cntPlayer:   Số lượng quân cờ người đánh
+        // cntComputer: Số lượng quân cờ máy đánh
+
+        int i, j, k;
 
         i = x;
         j = y;
-        d1 = d2 = 0;
-        // d1: Số lượng quân cờ người đánh
-        // d2: Số lượng quân cờ máy đánh
-
+        k = 0;
         // Trên đường 5 ô xuất phát từ (x;y)
-        // Đếm xem có bao nhiêu quân cờ của người (d1), của máy (d2)
-        for (k = 0; k <= 4; k++) {
-            if (cell[i][j] == 1) {
-                // Human
-                d1++;
-            } else if (cell[i][j] == 2) {
-                //Computer
-                d2++;
-            }
+        // Đếm xem có bao nhiêu quân cờ của và của máy
+        while (k++ < 5) {
+            if (cell[i][j] == USER)
+                cntPlayer++;
+            else if (cell[i][j] == COMPUTER)
+                cntComputer++;
             i += dx;
             j += dy;
         }
 
         // Nếu như trên đường 5 ô đều có của người và máy
         // Thì có nghĩa đường này k thể phân định thắng thua
-        // Không cần tính toán nữa
-        if (d1 > 0 && d2 > 0) return;
+        // => Không cần tính toán nữa
+        if (cntPlayer > 0 && cntComputer > 0) return;
 
-        // Nếu chỉ có 1 loại quân cờ (Hoặc k có) trên đường đó
+        // => Nếu chỉ có 1 loại quân cờ (Hoặc k có) trên đường đó
 
-        if (kh == 2) {
+        if (turn == COMPUTER) {
             // Nếu máy đánh thì gán số quân cờ người = máy
-            d1 = d2;
+            cntPlayer = cntComputer;
         }
 
-        // Nếu như người k có quân nào thì dừng
-        if (d1 == 0) {
+        // Nếu như người k có quân nào thì không cần xét
+        // Do đường đánh 5 này k có gì nguy hiểm
+        if (cntPlayer == 0) {
             return;
         }
 
-        s = 1; // Giá trị ước lượng
-        for (k = 2; k <= d1; k++) {
-            s *= 10;
+        int value = 1; // Giá trị ước lượng sự nguy hiểm của nước cờ
+
+        // Giá trị ước lượng = 10^n  (với n là số quân cờ của người chơi)
+        while (--cntPlayer > 0) value *= 10;
+
+        // isNotBlocked: là xác định đường 5 có bị chặn 2 đầu bởi quân cờ đối thủ hay k?
+        boolean isNotBlocked = true;
+
+        // Xét chặn 2 đầu trên đường duyệt 5 (k tính bị chặn bởi đường biên)
+        // (headX; headY) và (tailX; tailY) là điểm trước và sau của đường duyệt 5
+        int headX, headY, tailX, tailY;
+
+        tailX = i;
+        tailY = j;
+
+        headX = tailX - 6 * dx;
+        headY = tailY - 6 * dy;
+
+        if (insideBoard(headX, headY)) {
+            isNotBlocked = cell[headX][headY] != turn;
         }
 
-        // ok là xác định đường 5 có bị chặn 2 đầu bởi quân cờ đối định
-        // với quân cờ đang xét hay không?
-        boolean ok = true;
-
-        // (i,j) là ô ngoài mút cuối cùng trên đường duyệt 5
-        // Gọi nó là con của đường 5 cũng đc
-
-        if (i >= 0 && i < m && j >= 0 && j < n) {
-            ok = (cell[i][j] != kh);
+        if (insideBoard(tailX, tailY)) {
+            isNotBlocked = isNotBlocked && cell[tailX][tailY] != turn;
         }
 
-        // (i,j) là ô nằm ngoài mút đầu tiên của đường duyệt 5
-        // (i,j) k thuộc đường 5
-        // Gọi nó là cha của đường 5 cũng đc
-        // Cha và con ở trên kia là 2 ô chặn 2 đầu đường 5
-        i = i - 6 * dx;
-        j = j - 6 * dy;
+        // Nếu không bị chặn 2 đầu, ước lượng nguy hiểm x2
+        if (isNotBlocked) value *= 2;
 
-        if (i >= 0 && i < m && j >= 0 && j < n) {
-            ok = ok && (cell[i][j] != kh);
-        }
-
-        // Nếu không bị chặn 2 đầu, ước lượng x2
-        if (ok) s *= 2;
-
-
-        // Duyệt là đường 5
+        // Duyệt lại đường 5, cập nhật giá trị ước lượng nguy hiểm của mỗi ô
         i = x;
         j = y;
-        for (k = 0; k <= 4; k++) {
-            // tăng giá trị ước lượng của mỗi ô thêm s
-            score[i][j] += s;
+        k = 0;
+        while (k++ < 5) {
+            score[i][j] += value;
             i += dx;
             j += dy;
         }
+
     }
 
-    // Dự đoán, ước lượng hàm heuristic
+    /**
+     * Dự đoán, ước lượng hàm heuristic
+     */
     public void evaluate() {
         int i, j;
 
+        // Reset mảng giá trị
         for (i = 0; i < m; i++)
             for (j = 0; j < n; j++)
                 score[i][j] = 0;
 
+
+        // Duyệt mỗi ô trên bàn cờ
+        // Tại mỗi ô duyệt các đường 5 có thể để tính toán ước lượng giá trị nguy hiểm của mỗi ô cờ
         for (i = 0; i < m; i++) {
             for (j = 0; j < n; j++) {
                 if (j + 4 < n) {
                     // Xuống
-                    tinh(i, j, 0, 1);
+                    calculate(i, j, 0, 1);
                 }
                 if (i + 4 < m && j + 4 < n) {
                     // Chéo xuống phải
-                    tinh(i, j, 1, 1);
+                    calculate(i, j, 1, 1);
                 }
                 if (i + 4 < m) {
                     // Sang phải
-                    tinh(i, j, 1, 0);
+                    calculate(i, j, 1, 0);
                 }
                 if (i + 4 < m && j >= 4) {
                     // Chéo lên phải
-                    tinh(i, j, 1, -1);
+                    calculate(i, j, 1, -1);
                 }
             }
         }
@@ -166,7 +180,8 @@ public class Table {
         int li1 = 1, lj1 = 1, li2 = 1, lj2 = 1;
 
         max1 = 0;
-        kh = 1;
+        turn = USER;
+
         evaluate();
 
         for (int i = 0; i < m; i++) {
@@ -188,8 +203,10 @@ public class Table {
         }
 
         max2 = 0;
-        kh = 2;
+        turn = COMPUTER;
+
         evaluate();
+
         for (int i = 0; i < m; i++) {
             for (int j = 0; j < n; j++) {
                 if (cell[i][j] == 0) {
@@ -249,23 +266,43 @@ public class Table {
         }
     }
 
-    public boolean check5(int i, int j, int dx, int dy) {
+
+    /**
+     * Kiểm tra đường 5 muốn duyệt có tạo thành chiến thắng được hay không?
+     *
+     * @param x  vị trí X bắt đầu duyệt
+     * @param y  vị trí Y bắt đầu duyệt
+     * @param dx hướng duyệt theo chiều X
+     * @param dy hướng duyệt theo chiều Y
+     * @return đường 5 có đúng 5 quân cờ cùng loại hay không?
+     */
+    public boolean check5(int x, int y, int dx, int dy) {
         int cnt = 1;
-        int x = i, y = j;
-        for (int k = 1; k <= 4; k++) {
-            x += dx;
-            y += dy;
-            if (x >= 0 && x < m && y >= 0 && y < n) {
-                if (cell[x][y] == cell[i][j]) cnt++;
+        int i = x, j = y;
+
+        for (int k = 1; k < 5; k++) {
+            i += dx;
+            j += dy;
+            if (insideBoard(i, j) && cell[x][y] == cell[i][j]) {
+                cnt++;
             }
         }
         return cnt == 5;
     }
 
+    /**
+     * Kiểm tra trên toàn bàn cờ đã có đường 5 chiến thắng hay chưa?
+     * Lưu lại tọa độ và hướng của đường 5 chiến thắng
+     * Tọa độ thắng bắt đầu (wx; wy)
+     * Hướng thắng (wdx; wdy)
+     *
+     * @return Có kết thúc game hay không?
+     */
     public boolean checkWin() {
         for (int i = 0; i < m; i++) {
             for (int j = 0; j < n; j++) {
                 if (cell[i][j] == 0) continue;
+
                 if (check5(i, j, 0, 1)) {
                     wx = i;
                     wy = j;

@@ -10,7 +10,7 @@ public class Main {
         } catch (UnsupportedLookAndFeelException | ClassNotFoundException | InstantiationException | IllegalAccessException e) {
         }
 
-        Paint gui = new Paint();
-        gui.setVisible(true);
+        Paint p = new Paint();
+        p.setVisible(true);
     }
 }
