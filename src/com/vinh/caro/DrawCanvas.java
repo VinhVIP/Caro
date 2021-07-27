@@ -23,8 +23,9 @@ public class DrawCanvas extends Canvas {
 
     private final Table table;    // Lớp cài đặt giải thuật tìm nước cờ đánh kế tiếp
 
-    private boolean isUserFirst, isXFirst;
+    private boolean isUserFirst;
     private int caroX = -1, caroO = -1;
+    private int lastComputerX = -1, lastComputerY = -1;     // Tọa độ máy đánh gần nhất, dùng để highlight/bỏ highlight ô cờ
 
     public DrawCanvas(Paint paint) {
         this.paint = paint;
@@ -47,7 +48,6 @@ public class DrawCanvas extends Canvas {
      */
     public void setup(boolean isUserFirst, boolean isXFirst) {
         this.isUserFirst = isUserFirst;
-        this.isXFirst = isXFirst;
 
         if (isUserFirst) {
             if (isXFirst) {
@@ -82,6 +82,9 @@ public class DrawCanvas extends Canvas {
         table.cell[x][y] = COMPUTER;
         countXO++;
         drawCell(getGraphics(), x, y, true);
+
+        lastComputerX = x;
+        lastComputerY = y;
     }
 
     /**
@@ -132,12 +135,18 @@ public class DrawCanvas extends Canvas {
 
         if (table.cell[x][y] == caroX) {
             g.setColor(Color.RED);
-            g.drawLine(x * CELL_SIZE + 8, y * CELL_SIZE + 8, (x + 1) * CELL_SIZE - 8, (y + 1) * CELL_SIZE - 8);
-            g.drawLine((x + 1) * CELL_SIZE - 8, y * CELL_SIZE + 8, x * CELL_SIZE + 8, (y + 1) * CELL_SIZE - 8);
+            g.drawLine(x * CELL_SIZE + 9, y * CELL_SIZE + 9, (x + 1) * CELL_SIZE - 9, (y + 1) * CELL_SIZE - 9);
+            g.drawLine(x * CELL_SIZE + 9, y * CELL_SIZE + 10, (x + 1) * CELL_SIZE - 10, (y + 1) * CELL_SIZE - 9);
+            g.drawLine(x * CELL_SIZE + 10, y * CELL_SIZE + 9, (x + 1) * CELL_SIZE - 9, (y + 1) * CELL_SIZE - 10);
+
+            g.drawLine((x + 1) * CELL_SIZE - 9, y * CELL_SIZE + 9, x * CELL_SIZE + 9, (y + 1) * CELL_SIZE - 9);
+            g.drawLine((x + 1) * CELL_SIZE - 10, y * CELL_SIZE + 9, x * CELL_SIZE + 9, (y + 1) * CELL_SIZE - 10);
+            g.drawLine((x + 1) * CELL_SIZE - 9, y * CELL_SIZE + 10, x * CELL_SIZE + 10, (y + 1) * CELL_SIZE - 9);
         } else if (table.cell[x][y] == caroO) {
             g.setColor(Color.GREEN);
             g.drawOval(x * CELL_SIZE + 7, y * CELL_SIZE + 7, 26, 26);
             g.drawOval(x * CELL_SIZE + 8, y * CELL_SIZE + 8, 24, 24);
+            g.drawOval(x * CELL_SIZE + 9, y * CELL_SIZE + 9, 22, 22);
         }
     }
 
@@ -241,7 +250,6 @@ public class DrawCanvas extends Canvas {
         paint.setUserBoard(user.toString());
     }
 
-    private int lastComputerX = -1, lastComputerY = -1;
 
     // -------- Mouse Adapter -----------------
     public class MyMouseAdapter extends MouseAdapter {

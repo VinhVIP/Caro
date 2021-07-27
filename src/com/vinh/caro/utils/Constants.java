@@ -14,10 +14,9 @@ public class Constants {
 
     public static final int CELL_SIZE = 40;
 
-    public static final int GRID_COLOR = 0x47A4BA;
-    public static final int CELL_HOVER_COLOR = 0xFFE5F1EC;
+    public static final int GRID_COLOR = 0x70F3F3;
+    public static final int CELL_HOVER_COLOR = 0xFFF0F6F6;
     public static final int CELL_COLOR = 0xffffff;
-    public static final int CELL_HIGHLIGHT_COLOR = 0xffff00;
 
     public static final int BOARD_WIDTH = NUM_COLS * CELL_SIZE + 10;
     public static final int BOARD_HEIGHT = NUM_ROWS * CELL_SIZE + 10;

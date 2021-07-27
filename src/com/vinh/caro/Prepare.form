@@ -5,7 +5,9 @@
     <constraints>
       <xy x="48" y="54" width="677" height="461"/>
     </constraints>
-    <properties/>
+    <properties>
+      <background color="-16323073"/>
+    </properties>
     <border type="bevel-lowered" title="GAME CARO" title-justification="2"/>
     <children>
       <grid id="94766" layout-manager="GridLayoutManager" row-count="1" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
@@ -23,7 +25,9 @@
             <constraints>
               <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
             </constraints>
-            <properties/>
+            <properties>
+              <background color="-16323073"/>
+            </properties>
             <border type="none"/>
             <children>
               <component id="e7465" class="javax.swing.JButton" binding="buttonOK">
@@ -55,7 +59,9 @@
             <preferred-size width="400" height="80"/>
           </grid>
         </constraints>
-        <properties/>
+        <properties>
+          <background color="-1"/>
+        </properties>
         <border type="bevel-lowered" title="Chọn quân cờ đi trước" title-justification="2">
           <font/>
           <title-color color="-16776961"/>
@@ -66,7 +72,9 @@
             <constraints>
               <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
             </constraints>
-            <properties/>
+            <properties>
+              <background color="-1"/>
+            </properties>
             <border type="none"/>
             <children>
               <component id="17e4b" class="javax.swing.JRadioButton" binding="radioO">
@@ -74,6 +82,7 @@
                   <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
                 </constraints>
                 <properties>
+                  <background color="-1"/>
                   <foreground color="-7737266"/>
                   <text value="O"/>
                 </properties>
@@ -85,7 +94,9 @@
             <constraints>
               <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
             </constraints>
-            <properties/>
+            <properties>
+              <background color="-1"/>
+            </properties>
             <border type="none"/>
             <children>
               <component id="2ffaf" class="javax.swing.JRadioButton" binding="radioX">
@@ -93,6 +104,7 @@
                   <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
                 </constraints>
                 <properties>
+                  <background color="-1"/>
                   <foreground color="-65536"/>
                   <text value="X"/>
                 </properties>
@@ -108,7 +120,9 @@
             <preferred-size width="400" height="80"/>
           </grid>
         </constraints>
-        <properties/>
+        <properties>
+          <background color="-1"/>
+        </properties>
         <border type="bevel-lowered" title="Chọn người chơi trước" title-justification="2">
           <font/>
           <title-color color="-16776961"/>
@@ -119,7 +133,9 @@
             <constraints>
               <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
             </constraints>
-            <properties/>
+            <properties>
+              <background color="-1"/>
+            </properties>
             <border type="none"/>
             <children>
               <component id="e8303" class="javax.swing.JRadioButton" binding="radioUser">
@@ -127,6 +143,7 @@
                   <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
                 </constraints>
                 <properties>
+                  <background color="-1"/>
                   <text value="Người"/>
                 </properties>
               </component>
@@ -137,7 +154,9 @@
             <constraints>
               <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
             </constraints>
-            <properties/>
+            <properties>
+              <background color="-1"/>
+            </properties>
             <border type="none"/>
             <children>
               <component id="f1c9b" class="javax.swing.JRadioButton" binding="radioComputer">
@@ -145,6 +164,7 @@
                   <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
                 </constraints>
                 <properties>
+                  <background color="-1"/>
                   <text value="Máy"/>
                 </properties>
               </component>

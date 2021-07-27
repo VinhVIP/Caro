@@ -13,7 +13,7 @@ public class Table {
     int[][] cell;       // ma trận biểu diễn bàn cờ
     int[][] score;      // bảng giá trị nguy hiểm của mỗi ô cờ trên bàn cờ
     int[][] scoreUser;  // bảng giá trị nguy hiểm của USER mỗi ô cờ trên bàn cờ
-    int m, n, turn;
+    int m, n, type;     // type: nước cờ xét là của USER hay COMPUTER
     int resX, resY;     // Giá trị tọa độ kết quả nước đánh kế tiếp sau khi tính toán xong
     int wx, wy, wdx, wdy;   // Đường 5 chiến thắng bắt đầu từ ô (wx; wy) theo hướng (wdx, wdy)
 
@@ -44,8 +44,8 @@ public class Table {
      * @param dy hướng duyệt theo chiều Y
      */
     void calculate(int x, int y, int dx, int dy) {
-        int cntPlayer = 0, cntComputer = 0;
-        // cntPlayer:   Số lượng quân cờ người đánh
+        int cntUser = 0, cntComputer = 0;
+        // cntUser:   Số lượng quân cờ người đánh
         // cntComputer: Số lượng quân cờ máy đánh
 
         int i, j, k;
@@ -57,7 +57,7 @@ public class Table {
         // Đếm xem có bao nhiêu quân cờ của và của máy
         while (k++ < 5) {
             if (cell[i][j] == USER)
-                cntPlayer++;
+                cntUser++;
             else if (cell[i][j] == COMPUTER)
                 cntComputer++;
             i += dx;
@@ -67,25 +67,24 @@ public class Table {
         // Nếu như trên đường 5 ô đều có của người và máy
         // Thì có nghĩa đường này k thể phân định thắng thua
         // => Không cần tính toán nữa
-        if (cntPlayer > 0 && cntComputer > 0) return;
+        if (cntUser > 0 && cntComputer > 0) return;
 
-        // => Nếu chỉ có 1 loại quân cờ (Hoặc k có) trên đường đó
-
-        if (turn == COMPUTER) {
-            // Nếu máy đánh thì gán số quân cờ người = máy
-            cntPlayer = cntComputer;
-        }
-
-        // Nếu như người k có quân nào thì không cần xét
-        // Do đường đánh 5 này k có gì nguy hiểm
-        if (cntPlayer == 0) {
-            return;
-        }
+        // => Trường hợp chỉ có 1 loại quân cờ (Hoặc k có) trên đường đó
 
         int value = 1; // Giá trị ước lượng sự nguy hiểm của nước cờ
+        int cnt = 0;
 
-        // Giá trị ước lượng = 10^n  (với n là số quân cờ của người chơi)
-        while (--cntPlayer > 0) value *= 10;
+        if (type == COMPUTER)
+            cnt = cntComputer;
+        else if (type == USER)
+            cnt = cntUser;
+
+
+        // Nếu không có quân cờ nào thuộc loại đang xét thì dừng
+        if (cnt == 0) return;
+
+        // Giá trị ước lượng = 10^(n-1)  (với n là số quân cờ của USER/COMPUTER tùy theo loại cờ đáng xét)
+        while (--cnt > 0) value *= 10;
 
         // isNotBlocked: là xác định đường 5 có bị chặn 2 đầu bởi quân cờ đối thủ hay k?
         boolean isNotBlocked = true;
@@ -101,11 +100,11 @@ public class Table {
         headY = tailY - 6 * dy;
 
         if (insideBoard(headX, headY)) {
-            isNotBlocked = cell[headX][headY] != turn;
+            isNotBlocked = cell[headX][headY] != type;
         }
 
         if (insideBoard(tailX, tailY)) {
-            isNotBlocked = isNotBlocked && cell[tailX][tailY] != turn;
+            isNotBlocked = isNotBlocked && cell[tailX][tailY] != type;
         }
 
         // Nếu không bị chặn 2 đầu, ước lượng nguy hiểm x2
@@ -169,12 +168,12 @@ public class Table {
      * @return có tương đương nhau hay không?
      */
     boolean equivalent(int d1, int d2) {
-        int e1, e2, t, i;
+        int e1, e2, t;
         t = 1000;
-        for (i = 1; i <= 3; i++) {
+        for (int i = 0; i < 3; i++) {
             e1 = d1 / t;
             e2 = d2 / t;
-            if ((e1 > 0) || (e2 > 0)) {
+            if (e1 > 0 || e2 > 0) {
                 return e1 == e2;
             }
             t = t / 10;
@@ -190,7 +189,7 @@ public class Table {
         int li1 = 1, lj1 = 1, li2 = 1, lj2 = 1;
 
         // Tính hàm heuristic độ nguy hiểm các nước cờ của USER
-        turn = USER;
+        type = USER;
         evaluate();
 
         max1 = 0;
@@ -214,7 +213,7 @@ public class Table {
         }
 
         // Tính hàm heuristic độ nguy hiểm các nước cờ của COMPUTER
-        turn = COMPUTER;
+        type = COMPUTER;
         evaluate();
 
         max2 = 0;
