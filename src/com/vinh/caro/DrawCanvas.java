@@ -16,12 +16,12 @@ import static com.vinh.caro.utils.Constants.*;
 
 public class DrawCanvas extends Canvas {
 
-    private Paint paint;
+    private final Paint paint;
 
-    private int countXO = 0;
-    private int lastX = -1, lastY = -1;
+    private int countXO = 0;    // Đếm số lượng quân cờ đã được đánh
+    private int lastX = -1, lastY = -1;     // Tọa độ chuột hover cuối cùng, dùng để highlight/bỏ highlight ô cờ
 
-    Table table;
+    private final Table table;    // Lớp cài đặt giải thuật tìm nước cờ đánh kế tiếp
 
     private boolean isUserFirst, isXFirst;
     private int caroX = -1, caroO = -1;
@@ -39,6 +39,12 @@ public class DrawCanvas extends Canvas {
 
     }
 
+    /**
+     * Cài đặt chế dộ chơi
+     *
+     * @param isUserFirst Người chơi đánh trước
+     * @param isXFirst    Quân X đánh trước
+     */
     public void setup(boolean isUserFirst, boolean isXFirst) {
         this.isUserFirst = isUserFirst;
         this.isXFirst = isXFirst;
@@ -64,15 +70,25 @@ public class DrawCanvas extends Canvas {
         }
     }
 
+
+    /**
+     * Máy đánh trước, random 1 điểm bất kì trên bàn cờ
+     */
     private void computerFirst() {
         Random r = new Random();
-        int x = Math.abs(r.nextInt()) % NUM_COLS;
-        int y = Math.abs(r.nextInt()) % NUM_ROWS;
+        int x = Math.abs(r.nextInt()) % (NUM_COLS - NUM_COLS / 2) + NUM_COLS / 4;
+        int y = Math.abs(r.nextInt()) % (NUM_ROWS - NUM_ROWS / 2) + NUM_ROWS / 4;
 
         table.cell[x][y] = COMPUTER;
+        countXO++;
         drawCell(getGraphics(), x, y, true);
     }
 
+    /**
+     * Vẽ lưới bàn cờ
+     *
+     * @param g
+     */
     private void drawGrid(Graphics g) {
         g.setColor(new Color(GRID_COLOR));
 
@@ -84,6 +100,14 @@ public class DrawCanvas extends Canvas {
         }
     }
 
+    /**
+     * Vẽ ô cờ tại tọa độ xác định
+     *
+     * @param g
+     * @param x       tọa độ X
+     * @param y       tọa độ y
+     * @param isHover ô được có đang được rê chuột hoặc highlight lên k
+     */
     private void drawCell(Graphics g, int x, int y, boolean isHover) {
         if (!insideBoard(x, y)) return;
 
@@ -93,11 +117,18 @@ public class DrawCanvas extends Canvas {
             g.setColor(new Color(CELL_COLOR));
         }
         g.fillRect(x * CELL_SIZE + 1, y * CELL_SIZE + 1, CELL_SIZE - 1, CELL_SIZE - 1);
-        drawXO(x, y);
+        drawXO(g, x, y);
     }
 
-    private void drawXO(int x, int y) {
-        Graphics g = getGraphics();
+
+    /**
+     * Vẽ quân X hoặc O tương ứng lên ô cờ
+     *
+     * @param g
+     * @param x
+     * @param y
+     */
+    private void drawXO(Graphics g, int x, int y) {
 
         if (table.cell[x][y] == caroX) {
             g.setColor(Color.RED);
@@ -110,59 +141,6 @@ public class DrawCanvas extends Canvas {
         }
     }
 
-//    private State checkState(int valueCheck) {
-//        if (countXO == WIDTH * HEIGHT) return State.DRAW;
-//
-//        int[] directX = {1, 1, 0, -1};
-//        int[] directY = {0, 1, 1, 1};
-//
-//        for (int x = 0; x < WIDTH; x++) {
-//            for (int y = 0; y < HEIGHT; y++) {
-//                for (int k = 0; k < directX.length; k++)
-//                    if (check5(board, x, y, directX[k], directY[k], valueCheck)) return State.WIN;
-//            }
-//        }
-//        return State.UNDEFINED;
-//    }
-//
-//    private boolean check5(int[][] board, int u, int v, int xUnit, int yUnit, int value) {
-//        int cnt = 0;
-//        int x = u, y = v;
-//        while (cnt < 5) {
-//            x += xUnit;
-//            y += yUnit;
-//            if (x >= WIDTH || x < 0 || y >= HEIGHT || y < 0) break;
-//
-//            if (board[x][y] == value) cnt++;
-//            else break;
-//        }
-//
-//        if (cnt == 5) {
-//            int k = 0;
-//            while (k++ < 5) {
-//                u += xUnit;
-//                v += yUnit;
-//                drawCell(getGraphics(), new Point(u, v, 0), true);
-//            }
-//            return true;
-//        }
-//        return false;
-//    }
-//
-//    private boolean checkEnd(int[][] board, int u, int v, int xUnit, int yUnit, int value) {
-//        int cnt = 0;
-//        int x = u, y = v;
-//        while (cnt < 5) {
-//            x += xUnit;
-//            y += yUnit;
-//            if (x >= WIDTH || x < 0 || y >= HEIGHT || y < 0) break;
-//
-//            if (board[x][y] == value) cnt++;
-//            else break;
-//        }
-//        return cnt == 5;
-//    }
-
     @Override
     public void paint(Graphics g) {
         super.paint(g);
@@ -170,10 +148,18 @@ public class DrawCanvas extends Canvas {
         drawGrid(g);
         for (int i = 0; i < NUM_COLS; i++)
             for (int j = 0; j < NUM_ROWS; j++)
-                drawXO(i, j);
+                drawXO(g, i, j);
     }
 
+
+    /**
+     * Reset để chơi ván mới
+     */
     private void reset() {
+        countXO = 0;
+        paint.setUserBoard("");
+        paint.setComputerBoard("");
+
         for (int i = 0; i < NUM_COLS; i++)
             for (int j = 0; j < NUM_ROWS; j++)
                 table.cell[i][j] = 0;
@@ -184,158 +170,18 @@ public class DrawCanvas extends Canvas {
         drawGrid(g);
     }
 
-//    private void checkEndGame() {
-//        if (checkState(CELL_O) == State.DRAW) {
-//            JOptionPane.showMessageDialog(null, "DRAW");
-//            reset();
-//        } else if (checkState(CELL_O) == State.WIN) {
-//            JOptionPane.showMessageDialog(null, "O Win");
-//            reset();
-//        } else if (checkState(CELL_X) == State.WIN) {
-//            JOptionPane.showMessageDialog(null, "X Win");
-//            reset();
-//        }
-//    }
-
-//    private boolean isEndNode(int[][] state) {
-//        int[] directX = {1, 1, 0, -1};
-//        int[] directY = {0, 1, 1, 1};
-//
-//        for (int x = 0; x < WIDTH; x++) {
-//            for (int y = 0; y < HEIGHT; y++) {
-//                for (int k = 0; k < directX.length; k++)
-//                    if (checkEnd(state, x, y, directX[k], directY[k], CELL_X) ||
-//                            checkEnd(state, x, y, directX[k], directY[k], CELL_O)) return true;
-//            }
-//        }
-//        return false;
-//    }
-
-//    private boolean isWin(int[][] state) {
-//        int[] directX = {1, 1, 0, -1};
-//        int[] directY = {0, 1, 1, 1};
-//
-//        for (int x = 0; x < WIDTH; x++) {
-//            for (int y = 0; y < HEIGHT; y++) {
-//                for (int k = 0; k < directX.length; k++)
-//                    if (checkEnd(state, x, y, directX[k], directY[k], CELL_X) ||
-//                            checkEnd(state, x, y, directX[k], directY[k], CELL_O)) return true;
-//            }
-//        }
-//        return false;
-//    }
-
-//    private int checkTurn(int[][] state) {
-//        int cnt = 0;
-//        for (int i = 0; i < WIDTH; i++)
-//            for (int j = 0; j < HEIGHT; j++) {
-//                if (state[i][j] != 0) cnt++;
-//            }
-//
-//        if (cnt % 2 == 0) return CELL_O;
-//        return CELL_X;
-//    }
-
-//    private int value(int[][] state) {
-//        if (isWin(state)) {
-//            if (checkTurn(state) == CELL_O) return 1;
-//            else return -1;
-//        }
-//        return 0;
-//    }
-
-//    private int[][] newState(int[][] state, int x, int y, int valueCell) {
-//        int[][] a = new int[WIDTH][HEIGHT];
-//        for (int i = 0; i < WIDTH; i++)
-//            for (int j = 0; j < HEIGHT; j++) {
-//                a[i][j] = state[i][j];
-//            }
-//
-//        a[x][y] = valueCell;
-//        return a;
-//    }
-//
-//    private void ai() {
-//        int min = Integer.MAX_VALUE;
-//        int[][] minChild = newState(board, 0, 0, board[0][0]);
-//
-//        for (int i = 0; i < WIDTH; i++) {
-//            for (int j = 0; j < HEIGHT; j++) {
-//                if (board[i][j] == 0) {
-//                    int[][] child = newState(board, i, j, CELL_O);
-//
-//                    int tmp = minimax(child, 5, true);
-//
-//                    if (tmp < min) {
-//                        min = tmp;
-//                        minChild = child;
-//                        System.out.println("found : " + i + ";" + j);
-//                    }
-//                }
-//            }
-//        }
-//
-////        board = minChild;
-//
-//        for (int i = 0; i < WIDTH; i++) {
-//            for (int j = 0; j < HEIGHT; j++) {
-//                if (board[i][j] != minChild[i][j]) {
-//                    board[i][j] = minChild[i][j];
-//                    drawCell(getGraphics(), new Point(i, j, CELL_O), true);
-//                }
-//                System.out.print(board[j][i] + " ");
-//            }
-//            System.out.println();
-//        }
-//        System.out.println("ok ok");
-//
-//        countXO++;
-//
-////        checkEndGame();
-//    }
-//
-//    private int minimax(int[][] state, int depth, boolean isMaxPlayer) {
-//        return alphaBeta(state, depth, Integer.MIN_VALUE, Integer.MAX_VALUE, isMaxPlayer);
-//    }
-//
-//    private int alphaBeta(int[][] state, int depth, int a, int b, boolean isMaxPlayer) {
-//        if (isEndNode(state) || depth == 0) {
-//            return value(state);
-//        }
-//
-//        if (isMaxPlayer) {
-//            for (int i = 0; i < WIDTH; i++) {
-//                for (int j = 0; j < HEIGHT; j++) {
-//                    if (state[i][j] != 0) {
-//                        int tmp = alphaBeta(newState(state, i, j, CELL_X), depth - 1, a, b, false);
-//                        a = Math.max(a, tmp);
-//                        if (a >= b) break;
-//                    }
-//                }
-//            }
-//            return a;
-//        } else {
-//            for (int i = 0; i < WIDTH; i++) {
-//                for (int j = 0; j < HEIGHT; j++) {
-//                    if (state[i][j] != 0) {
-//                        int tmp = alphaBeta(newState(state, i, j, CELL_O), depth - 1, a, b, true);
-//                        b = Math.min(a, tmp);
-//                        if (a >= b) break;
-//                    }
-//                }
-//            }
-//            return b;
-//        }
-//    }
-//
-//    private int nextTurn() {
-//        if (countXO % 2 == 0) return CELL_X;
-//        return CELL_O;
-//    }
-
+    /**
+     * Kiểm tra ván cờ có thể kết hay không?
+     * Nếu có, hiển thị dialog thông báo kết quả
+     * Và highlight đường 5 chiến thắng
+     *
+     * @param x tọa độ X của nước chơi cuối cùng của máy (dùng để bỏ highlight ô cờ)
+     * @param y tọa độ Y của nước chơi cuối cùng của máy
+     * @return ván cờ kết thúc (thắng, hòa) hay không?
+     */
     private boolean checkEndGame(int x, int y) {
         if (countXO == NUM_ROWS * NUM_COLS) {
-            JOptionPane.showMessageDialog(null, "Draw!");
+            JOptionPane.showMessageDialog(null, "Hòa!");
             reset();
             paint.newGame();
             return true;
@@ -350,12 +196,49 @@ public class DrawCanvas extends Canvas {
                 x += table.wdx;
                 y += table.wdy;
             }
-            JOptionPane.showMessageDialog(null, "Computer win!");
+
+            String mess = "";
+
+            if (countXO % 2 == 1) {
+                // Người chơi trước thắng
+                mess = (isUserFirst ? "Bạn" : "Máy") + " thắng!";
+            } else {
+                mess = (isUserFirst ? "Máy" : "Bạn") + " thắng!";
+            }
+
+            JOptionPane.showMessageDialog(null, mess);
             reset();
             paint.newGame();
             return true;
         }
+
         return false;
+    }
+
+    /**
+     * Show dữ liệu heuristic
+     */
+    private void showScoreBoard() {
+        StringBuilder comp = new StringBuilder();
+
+        for (int y = 0; y < NUM_ROWS; y++) {
+            for (int x = 0; x < NUM_COLS; x++) {
+                comp.append(table.score[x][y]).append("\t");
+            }
+            comp.append("\n");
+        }
+
+        StringBuilder user = new StringBuilder();
+
+        for (int y = 0; y < NUM_ROWS; y++) {
+            for (int x = 0; x < NUM_COLS; x++) {
+                user.append(table.scoreUser[x][y]).append("\t");
+            }
+            user.append("\n");
+        }
+
+        paint.setComputerBoard(comp.toString());
+        paint.setUserBoard(user.toString());
     }
 
     private int lastComputerX = -1, lastComputerY = -1;
@@ -371,6 +254,7 @@ public class DrawCanvas extends Canvas {
 
             if (insideBoard(x, y) && table.cell[x][y] == 0) {
 
+                // Người chơi đánh
                 table.cell[x][y] = USER;
                 countXO++;
                 drawCell(getGraphics(), x, y, true);
@@ -378,14 +262,22 @@ public class DrawCanvas extends Canvas {
                 drawCell(getGraphics(), lastComputerX, lastComputerY, false);
 
                 if (!checkEndGame(x, y)) {
+                    // Nếu người chơi đánh nhưng chưa thể kết thúc game
+                    // Thì đến lượt máy đánh
+
+                    // Tìm kiếm nước đi kế tiếp
                     table.findSolution();
 
+                    showScoreBoard();
+
+                    // Dừng 1 khoảng thời gian để người chơi kịp nhìn thấy máy đánh :))
                     try {
                         Thread.sleep(300);
                     } catch (Exception ex) {
                         ex.printStackTrace();
                     }
 
+                    // Máy đánh
                     table.cell[table.resX][table.resY] = COMPUTER;
                     countXO++;
                     drawCell(getGraphics(), table.resX, table.resY, true);
@@ -393,6 +285,7 @@ public class DrawCanvas extends Canvas {
                     lastComputerX = table.resX;
                     lastComputerY = table.resY;
 
+                    // Kiểm tra xem máy đánh thì có kết thúc ván đấu hay chưa
                     checkEndGame(x, y);
                 }
 
@@ -405,6 +298,9 @@ public class DrawCanvas extends Canvas {
         @Override
         public void mouseMoved(MouseEvent e) {
             super.mouseMoved(e);
+
+            // Highlight ô cờ đang được rê chuột
+
             int x = e.getX() / CELL_SIZE;
             int y = e.getY() / CELL_SIZE;
 
@@ -423,11 +319,5 @@ public class DrawCanvas extends Canvas {
         }
     }
 
-    private boolean insideBoard(int x, int y) {
-        return x >= 0 &&
-                x < NUM_COLS &&
-                y >= 0 &&
-                y < NUM_ROWS;
-    }
 
 }

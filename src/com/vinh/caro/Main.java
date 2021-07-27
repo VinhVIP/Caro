@@ -4,13 +4,9 @@ import javax.swing.*;
 
 public class Main {
 
-    public static void main(String[] args) {
-        try {
-            UIManager.setLookAndFeel("javax.swing.plaf.nimbus.NimbusLookAndFeel");
-        } catch (UnsupportedLookAndFeelException | ClassNotFoundException | InstantiationException | IllegalAccessException e) {
-        }
+    public static void main(String[] args) throws UnsupportedLookAndFeelException, ClassNotFoundException, InstantiationException, IllegalAccessException {
+        UIManager.setLookAndFeel("javax.swing.plaf.nimbus.NimbusLookAndFeel");
 
-        Paint p = new Paint();
-        p.setVisible(true);
+        new Paint();
     }
 }

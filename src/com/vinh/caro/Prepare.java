@@ -13,9 +13,10 @@ public class Prepare extends JDialog {
     private JRadioButton radioX;
     private JRadioButton radioO;
 
-    private ButtonGroup groupPlayer, groupXO;
+    private final ButtonGroup groupPlayer;
+    private final ButtonGroup groupXO;
 
-    private Paint paint;
+    private final Paint paint;
 
     public Prepare(Paint paint) {
         this.paint = paint;
@@ -58,6 +59,7 @@ public class Prepare extends JDialog {
     }
 
     private void onCancel() {
+        paint.setup(true, true);
         dispose();
     }
 

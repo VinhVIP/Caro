@@ -9,28 +9,33 @@ import javax.swing.*;
 
 public class Paint extends JFrame {
     private JPanel mainPanel;
-    private JLabel labelComp;
-    private JLabel labelUser;
+    private JTextArea txtComputer;
     private JPanel rootPanel;
+    private JTextArea txtUser;
 
-    private DrawCanvas canvas;
+    private final DrawCanvas canvas;
 
     public Paint() {
         setTitle("Caro AI beta");
-        setSize(1100, 880);
+        setSize(1600, 880);
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         setResizable(false);
+
+        txtComputer.setTabSize(3);
+        txtUser.setTabSize(3);
 
         canvas = new DrawCanvas(this);
         mainPanel.add(canvas);
 
-        newGame();
 
         add(rootPanel);
-        setLocation(250, 50);
+        setLocation(150, 50);
+        setVisible(true);
+
+        newGame();
     }
 
-    public void newGame(){
+    public void newGame() {
         new Prepare(this);
     }
 
@@ -38,4 +43,11 @@ public class Paint extends JFrame {
         canvas.setup(isUserFirst, isXFirst);
     }
 
+    public void setComputerBoard(String content) {
+        txtComputer.setText(content);
+    }
+
+    public void setUserBoard(String content) {
+        txtUser.setText(content);
+    }
 }

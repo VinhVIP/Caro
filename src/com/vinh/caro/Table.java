@@ -10,12 +10,14 @@ import static com.vinh.caro.utils.Constants.*;
  */
 
 public class Table {
-    int[][] cell;
-    int[][] score;
-    int[][] score1;
-    int m, n, turn, resX, resY;
-    int wx, wy, wdx, wdy;
-    Random r;
+    int[][] cell;       // ma trận biểu diễn bàn cờ
+    int[][] score;      // bảng giá trị nguy hiểm của mỗi ô cờ trên bàn cờ
+    int[][] scoreUser;  // bảng giá trị nguy hiểm của USER mỗi ô cờ trên bàn cờ
+    int m, n, turn;
+    int resX, resY;     // Giá trị tọa độ kết quả nước đánh kế tiếp sau khi tính toán xong
+    int wx, wy, wdx, wdy;   // Đường 5 chiến thắng bắt đầu từ ô (wx; wy) theo hướng (wdx, wdy)
+
+    private final Random r;
 
     public Table() {
         m = NUM_ROWS;
@@ -23,7 +25,7 @@ public class Table {
 
         cell = new int[m][n];
         score = new int[m][n];
-        score1 = new int[m][n];
+        scoreUser = new int[m][n];
 
         // Gán mặc định bàn cở chưa có gì
         for (int i = 0; i < m; i++)
@@ -157,6 +159,15 @@ public class Table {
         }
     }
 
+    /**
+     * Kiểm tra 2 giá trị có tương đương nhau hay không
+     * So sánh từng chữ số từ trái qua phải
+     * VD: 3514 và 3521 thì trả về true, còn 3514 và 2514 thì false
+     *
+     * @param d1 giá trị muốn so sánh
+     * @param d2 giá trị muôn so sánh
+     * @return có tương đương nhau hay không?
+     */
     boolean equivalent(int d1, int d2) {
         int e1, e2, t, i;
         t = 1000;
@@ -164,29 +175,29 @@ public class Table {
             e1 = d1 / t;
             e2 = d2 / t;
             if ((e1 > 0) || (e2 > 0)) {
-                if (e1 == e2) {
-                    return true;
-                } else {
-                    return false;
-                }
+                return e1 == e2;
             }
             t = t / 10;
         }
         return true;
     }
 
+    /**
+     * Tìm kiếm nước đánh tối ưu
+     */
     public void findSolution() {
         int max1, max2;
         int li1 = 1, lj1 = 1, li2 = 1, lj2 = 1;
 
-        max1 = 0;
+        // Tính hàm heuristic độ nguy hiểm các nước cờ của USER
         turn = USER;
-
         evaluate();
+
+        max1 = 0;
 
         for (int i = 0; i < m; i++) {
             for (int j = 0; j < n; j++) {
-                score1[i][j] = score[i][j];
+                scoreUser[i][j] = score[i][j]; // lưu lại giá trị và scoreUser
                 if (cell[i][j] == 0) {
                     if (max1 < score[i][j]) {
                         max1 = score[i][j];
@@ -202,10 +213,11 @@ public class Table {
             }
         }
 
-        max2 = 0;
+        // Tính hàm heuristic độ nguy hiểm các nước cờ của COMPUTER
         turn = COMPUTER;
-
         evaluate();
+
+        max2 = 0;
 
         for (int i = 0; i < m; i++) {
             for (int j = 0; j < n; j++) {
@@ -226,36 +238,40 @@ public class Table {
 
         int max = 0, li = -1, lj = -1;
 
+        // scoreUser[][]:    bảng độ nguy hiểm các nước cờ của USER
+        // score[][]:        bảng độ nguy hiểm các nước cờ của COMPUTER
+
         if (equivalent(max1, max2)) {
+            // Nếu độ nguy hiểm nước cờ của USER và COMPUTER tương đương nhau
+
+
             if (max2 >= 1000) {
+
+                // Nếu độ nguy hiểm của COMPUTER cao thì ưu tiên đánh
                 resX = li2;
                 resY = lj2;
             } else {
+
+                // Duyệt mỗi ô cờ chưa được đánh
+                // Chọn ô cờ có giá trị tổng nguy hiểm của USER và COMPUTER lớn nhất để đánh
                 for (int i = 0; i < m; i++) {
                     for (int j = 0; j < n; j++) {
                         if (cell[i][j] == 0) {
-                            if (max < score[i][j] + score1[i][j]) {
-                                max = score[i][j] + score1[i][j];
+                            if (max < score[i][j] + scoreUser[i][j]) {
+                                max = score[i][j] + scoreUser[i][j];
                                 li = i;
                                 lj = j;
                             }
                         }
                     }
                 }
+
                 resX = li;
                 resY = lj;
-
-                if (resX == -1 || resY == -1) {
-                    if (max1 > max2) {
-                        resX = li1;
-                        resY = lj1;
-                    } else {
-                        resX = li2;
-                        resY = lj2;
-                    }
-                }
             }
         } else {
+            // Nếu độ nguy hiểm không tương đương
+            // Thì chọn cái lớn hơn
             if (max1 > max2) {
                 resX = li1;
                 resY = lj1;
@@ -334,6 +350,14 @@ public class Table {
             }
         }
         return false;
+    }
+
+    public void showResult() {
+        for (int row = 0; row < NUM_ROWS; row++) {
+            for (int col = 0; col < NUM_COLS; col++) {
+                System.out.print(score[row][col]);
+            }
+        }
     }
 
 }
