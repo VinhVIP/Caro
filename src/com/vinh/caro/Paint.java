@@ -12,17 +12,20 @@ public class Paint extends JFrame {
     private JTextArea txtComputer;
     private JPanel rootPanel;
     private JTextArea txtUser;
+    private JButton btnUndo;
 
     private final DrawCanvas canvas;
 
     public Paint() {
         setTitle("Caro AI beta");
-        setSize(1600, 880);
+        setSize(1600, 900);
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         setResizable(false);
 
         txtComputer.setTabSize(3);
         txtUser.setTabSize(3);
+
+        btnUndo.addActionListener(v->undo());
 
         canvas = new DrawCanvas(this);
         mainPanel.add(canvas);
@@ -33,6 +36,10 @@ public class Paint extends JFrame {
         setVisible(true);
 
         newGame();
+    }
+
+    public void undo(){
+        canvas.undo();
     }
 
     public void newGame() {

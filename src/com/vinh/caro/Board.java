@@ -1,5 +1,6 @@
 package com.vinh.caro;
 
+import java.awt.*;
 import java.util.Random;
 
 import static com.vinh.caro.utils.Constants.*;
@@ -9,17 +10,21 @@ import static com.vinh.caro.utils.Constants.*;
  * On 24/07/2021
  */
 
-public class Table {
-    int[][] cell;       // ma trận biểu diễn bàn cờ
+public class Board {
+    private int[][] cell;       // ma trận biểu diễn bàn cờ
     int[][] score;      // bảng giá trị nguy hiểm của mỗi ô cờ trên bàn cờ
     int[][] scoreUser;  // bảng giá trị nguy hiểm của USER mỗi ô cờ trên bàn cờ
     int m, n, type;     // type: nước cờ xét là của USER hay COMPUTER
-    int resX, resY;     // Giá trị tọa độ kết quả nước đánh kế tiếp sau khi tính toán xong
+    private int resX, resY;     // Giá trị tọa độ kết quả nước đánh kế tiếp sau khi tính toán xong
     int wx, wy, wdx, wdy;   // Đường 5 chiến thắng bắt đầu từ ô (wx; wy) theo hướng (wdx, wdy)
 
     private final Random r;
 
-    public Table() {
+    int[] directX = {0, 1, 1, 1};
+    int[] directY = {1, 0, 1, -1};
+
+
+    public Board() {
         m = NUM_ROWS;
         n = NUM_COLS;
 
@@ -27,12 +32,16 @@ public class Table {
         score = new int[m][n];
         scoreUser = new int[m][n];
 
+        init();
+
+        r = new Random();
+    }
+
+    public void init() {
         // Gán mặc định bàn cở chưa có gì
         for (int i = 0; i < m; i++)
             for (int j = 0; j < n; j++)
                 cell[i][j] = 0;
-
-        r = new Random();
     }
 
     /**
@@ -184,7 +193,7 @@ public class Table {
     /**
      * Tìm kiếm nước đánh tối ưu
      */
-    public void findSolution() {
+    public Point findSolution() {
         int max1, max2;
         int li1 = 1, lj1 = 1, li2 = 1, lj2 = 1;
 
@@ -279,27 +288,31 @@ public class Table {
                 resY = lj2;
             }
         }
+
+        return new Point(resX, resY);
     }
 
 
     /**
      * Kiểm tra đường 5 muốn duyệt có tạo thành chiến thắng được hay không?
      *
-     * @param x  vị trí X bắt đầu duyệt
-     * @param y  vị trí Y bắt đầu duyệt
+     * @param pt điểm bắt đầu duyệt
      * @param dx hướng duyệt theo chiều X
      * @param dy hướng duyệt theo chiều Y
      * @return đường 5 có đúng 5 quân cờ cùng loại hay không?
      */
-    public boolean check5(int x, int y, int dx, int dy) {
-        int cnt = 1;
-        int i = x, j = y;
+    public boolean check5(Point pt, int dx, int dy) {
+        Point p = new Point(pt);
 
-        for (int k = 1; k < 5; k++) {
-            i += dx;
-            j += dy;
-            if (insideBoard(i, j) && cell[x][y] == cell[i][j]) {
+        int cnt = 1;
+        int x = pt.x, y = pt.y;
+
+        int k = 0;
+        while (++k < 5) {
+            p.translate(dx, dy);
+            if (insideBoard(p) && cell[x][y] == cell[p.x][p.y]) {
                 cnt++;
+                System.out.println(cell[p.x][p.y] + " = " + cell[x][y]);
             }
         }
         return cnt == 5;
@@ -314,49 +327,47 @@ public class Table {
      * @return Có kết thúc game hay không?
      */
     public boolean checkWin() {
-        for (int i = 0; i < m; i++) {
-            for (int j = 0; j < n; j++) {
+        Point p = new Point();
+        int i, j, k;
+
+        for (i = 0; i < m; i++) {
+            for (j = 0; j < n; j++) {
                 if (cell[i][j] == 0) continue;
 
-                if (check5(i, j, 0, 1)) {
-                    wx = i;
-                    wy = j;
-                    wdx = 0;
-                    wdy = 1;
-                    return true;
-                }
-                if (check5(i, j, 1, 0)) {
-                    wx = i;
-                    wy = j;
-                    wdx = 1;
-                    wdy = 0;
-                    return true;
-                }
-                if (check5(i, j, 1, 1)) {
-                    wx = i;
-                    wy = j;
-                    wdx = 1;
-                    wdy = 1;
-                    return true;
-                }
-                if (check5(i, j, 1, -1)) {
-                    wx = i;
-                    wy = j;
-                    wdx = 1;
-                    wdy = -1;
-                    return true;
+                p.setLocation(i, j);
+
+                for (k = 0; k < directX.length; k++) {
+                    if (check5(p, directX[k], directY[k])) {
+                        wx = i;
+                        wy = j;
+                        wdx = directX[k];
+                        wdy = directY[k];
+                        return true;
+                    }
                 }
             }
         }
         return false;
     }
 
-    public void showResult() {
-        for (int row = 0; row < NUM_ROWS; row++) {
-            for (int col = 0; col < NUM_COLS; col++) {
-                System.out.print(score[row][col]);
-            }
-        }
+    public void set(Point p, int value) {
+        cell[p.x][p.y] = value;
+    }
+
+    public void set(int x, int y, int value) {
+        cell[x][y] = value;
+    }
+
+    public int get(Point p) {
+        return cell[p.x][p.y];
+    }
+
+    public int get(int x, int y) {
+        return cell[x][y];
+    }
+
+    public void clear(Point p) {
+        cell[p.x][p.y] = 0;
     }
 
 }

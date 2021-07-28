@@ -6,6 +6,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
 import java.util.Random;
+import java.util.Stack;
 
 import static com.vinh.caro.utils.Constants.*;
 
@@ -17,15 +18,16 @@ import static com.vinh.caro.utils.Constants.*;
 public class DrawCanvas extends Canvas {
 
     private final Paint paint;
+    private final Board board;    // Lớp cài đặt giải thuật tìm nước cờ đánh kế tiếp
+    private Stack<Point> userPoints, compPoints;
+    private Random r;
 
     private int countXO = 0;    // Đếm số lượng quân cờ đã được đánh
-    private int lastX = -1, lastY = -1;     // Tọa độ chuột hover cuối cùng, dùng để highlight/bỏ highlight ô cờ
-
-    private final Table table;    // Lớp cài đặt giải thuật tìm nước cờ đánh kế tiếp
+    private final Point lastHoverPoint, lastCompPoint;
 
     private boolean isUserFirst;
     private int caroX = -1, caroO = -1;
-    private int lastComputerX = -1, lastComputerY = -1;     // Tọa độ máy đánh gần nhất, dùng để highlight/bỏ highlight ô cờ
+
 
     public DrawCanvas(Paint paint) {
         this.paint = paint;
@@ -36,8 +38,15 @@ public class DrawCanvas extends Canvas {
         addMouseListener(new MyMouseAdapter());
         addMouseMotionListener(new MyMouseMotionAdapter());
 
-        table = new Table();
+        lastHoverPoint = new Point(-1, -1);
+        lastCompPoint = new Point(-1, -1);
 
+        userPoints = new Stack<>();
+        compPoints = new Stack<>();
+
+        r = new Random();
+
+        board = new Board();
     }
 
     /**
@@ -75,16 +84,46 @@ public class DrawCanvas extends Canvas {
      * Máy đánh trước, random 1 điểm bất kì trên bàn cờ
      */
     private void computerFirst() {
-        Random r = new Random();
         int x = Math.abs(r.nextInt()) % (NUM_COLS - NUM_COLS / 2) + NUM_COLS / 4;
         int y = Math.abs(r.nextInt()) % (NUM_ROWS - NUM_ROWS / 2) + NUM_ROWS / 4;
 
-        table.cell[x][y] = COMPUTER;
-        countXO++;
-        drawCell(getGraphics(), x, y, true);
+        computerPlay(new Point(x, y));
+    }
 
-        lastComputerX = x;
-        lastComputerY = y;
+    /**
+     * Người choi đánh lại
+     */
+    public void undo() {
+        if (compPoints.size() > 0 && userPoints.size() > 0) {
+            Point p;
+
+            // Thu hồi nước đi của COMPUTER
+            p = compPoints.pop();
+            board.clear(p);
+            drawCell(getGraphics(), p, false);
+
+            // Thu hồi nước đi của USER
+            p = userPoints.pop();
+            board.clear(p);
+            drawCell(getGraphics(), p, false);
+        }
+    }
+
+    private void userPlay(Point p) {
+        board.set(p, USER);
+        countXO++;
+        drawCell(getGraphics(), p, true);
+
+        userPoints.push(p);
+    }
+
+    private void computerPlay(Point p) {
+        board.set(p, COMPUTER);
+        countXO++;
+        drawCell(getGraphics(), p, true);
+
+        lastCompPoint.setLocation(p.x, p.y);
+        compPoints.push(p);
     }
 
     /**
@@ -107,20 +146,19 @@ public class DrawCanvas extends Canvas {
      * Vẽ ô cờ tại tọa độ xác định
      *
      * @param g
-     * @param x       tọa độ X
-     * @param y       tọa độ y
-     * @param isHover ô được có đang được rê chuột hoặc highlight lên k
+     * @param p       tọa độ vẽ
+     * @param isHover ô được vẽ có đang được highlight hay không
      */
-    private void drawCell(Graphics g, int x, int y, boolean isHover) {
-        if (!insideBoard(x, y)) return;
+    private void drawCell(Graphics g, Point p, boolean isHover) {
+        if (!insideBoard(p)) return;
 
         if (isHover) {
             g.setColor(new Color(CELL_HOVER_COLOR));
         } else {
             g.setColor(new Color(CELL_COLOR));
         }
-        g.fillRect(x * CELL_SIZE + 1, y * CELL_SIZE + 1, CELL_SIZE - 1, CELL_SIZE - 1);
-        drawXO(g, x, y);
+        g.fillRect(p.x * CELL_SIZE + 1, p.y * CELL_SIZE + 1, CELL_SIZE - 1, CELL_SIZE - 1);
+        drawXO(g, p);
     }
 
 
@@ -128,25 +166,24 @@ public class DrawCanvas extends Canvas {
      * Vẽ quân X hoặc O tương ứng lên ô cờ
      *
      * @param g
-     * @param x
-     * @param y
+     * @param p
      */
-    private void drawXO(Graphics g, int x, int y) {
+    private void drawXO(Graphics g, Point p) {
 
-        if (table.cell[x][y] == caroX) {
+        if (board.get(p) == caroX) {
             g.setColor(Color.RED);
-            g.drawLine(x * CELL_SIZE + 9, y * CELL_SIZE + 9, (x + 1) * CELL_SIZE - 9, (y + 1) * CELL_SIZE - 9);
-            g.drawLine(x * CELL_SIZE + 9, y * CELL_SIZE + 10, (x + 1) * CELL_SIZE - 10, (y + 1) * CELL_SIZE - 9);
-            g.drawLine(x * CELL_SIZE + 10, y * CELL_SIZE + 9, (x + 1) * CELL_SIZE - 9, (y + 1) * CELL_SIZE - 10);
+            g.drawLine(p.x * CELL_SIZE + 9, p.y * CELL_SIZE + 9, (p.x + 1) * CELL_SIZE - 9, (p.y + 1) * CELL_SIZE - 9);
+            g.drawLine(p.x * CELL_SIZE + 9, p.y * CELL_SIZE + 10, (p.x + 1) * CELL_SIZE - 10, (p.y + 1) * CELL_SIZE - 9);
+            g.drawLine(p.x * CELL_SIZE + 10, p.y * CELL_SIZE + 9, (p.x + 1) * CELL_SIZE - 9, (p.y + 1) * CELL_SIZE - 10);
 
-            g.drawLine((x + 1) * CELL_SIZE - 9, y * CELL_SIZE + 9, x * CELL_SIZE + 9, (y + 1) * CELL_SIZE - 9);
-            g.drawLine((x + 1) * CELL_SIZE - 10, y * CELL_SIZE + 9, x * CELL_SIZE + 9, (y + 1) * CELL_SIZE - 10);
-            g.drawLine((x + 1) * CELL_SIZE - 9, y * CELL_SIZE + 10, x * CELL_SIZE + 10, (y + 1) * CELL_SIZE - 9);
-        } else if (table.cell[x][y] == caroO) {
+            g.drawLine((p.x + 1) * CELL_SIZE - 9, p.y * CELL_SIZE + 9, p.x * CELL_SIZE + 9, (p.y + 1) * CELL_SIZE - 9);
+            g.drawLine((p.x + 1) * CELL_SIZE - 10, p.y * CELL_SIZE + 9, p.x * CELL_SIZE + 9, (p.y + 1) * CELL_SIZE - 10);
+            g.drawLine((p.x + 1) * CELL_SIZE - 9, p.y * CELL_SIZE + 10, p.x * CELL_SIZE + 10, (p.y + 1) * CELL_SIZE - 9);
+        } else if (board.get(p) == caroO) {
             g.setColor(Color.GREEN);
-            g.drawOval(x * CELL_SIZE + 7, y * CELL_SIZE + 7, 26, 26);
-            g.drawOval(x * CELL_SIZE + 8, y * CELL_SIZE + 8, 24, 24);
-            g.drawOval(x * CELL_SIZE + 9, y * CELL_SIZE + 9, 22, 22);
+            g.drawOval(p.x * CELL_SIZE + 7, p.y * CELL_SIZE + 7, 26, 26);
+            g.drawOval(p.x * CELL_SIZE + 8, p.y * CELL_SIZE + 8, 24, 24);
+            g.drawOval(p.x * CELL_SIZE + 9, p.y * CELL_SIZE + 9, 22, 22);
         }
     }
 
@@ -155,9 +192,15 @@ public class DrawCanvas extends Canvas {
         super.paint(g);
 
         drawGrid(g);
-        for (int i = 0; i < NUM_COLS; i++)
-            for (int j = 0; j < NUM_ROWS; j++)
-                drawXO(g, i, j);
+
+        Point p = new Point();
+        for (int i = 0; i < NUM_COLS; i++) {
+            for (int j = 0; j < NUM_ROWS; j++) {
+                p.setLocation(i, j);
+                drawXO(g, p);
+            }
+        }
+
     }
 
 
@@ -169,9 +212,10 @@ public class DrawCanvas extends Canvas {
         paint.setUserBoard("");
         paint.setComputerBoard("");
 
-        for (int i = 0; i < NUM_COLS; i++)
-            for (int j = 0; j < NUM_ROWS; j++)
-                table.cell[i][j] = 0;
+        userPoints.clear();
+        compPoints.clear();
+
+        board.init();
 
         Graphics g = getGraphics();
         g.setColor(Color.WHITE);
@@ -184,29 +228,26 @@ public class DrawCanvas extends Canvas {
      * Nếu có, hiển thị dialog thông báo kết quả
      * Và highlight đường 5 chiến thắng
      *
-     * @param x tọa độ X của nước chơi cuối cùng của máy (dùng để bỏ highlight ô cờ)
-     * @param y tọa độ Y của nước chơi cuối cùng của máy
+     * @param p tọa độ nước chơi cuối cùng của máy (dùng để bỏ highlight ô cờ)
      * @return ván cờ kết thúc (thắng, hòa) hay không?
      */
-    private boolean checkEndGame(int x, int y) {
+    private boolean checkEndGame(Point p) {
         if (countXO == NUM_ROWS * NUM_COLS) {
             JOptionPane.showMessageDialog(null, "Hòa!");
             reset();
             paint.newGame();
             return true;
-        } else if (table.checkWin()) {
-            drawCell(getGraphics(), x, y, false);
+        } else if (board.checkWin()) {
+            drawCell(getGraphics(), p, false);
 
-            x = table.wx;
-            y = table.wy;
+            p.setLocation(board.wx, board.wy);
             int k = 0;
             while (k++ < 5) {
-                drawCell(getGraphics(), x, y, true);
-                x += table.wdx;
-                y += table.wdy;
+                drawCell(getGraphics(), p, true);
+                p.translate(board.wdx, board.wdy);
             }
 
-            String mess = "";
+            String mess;
 
             if (countXO % 2 == 1) {
                 // Người chơi trước thắng
@@ -232,7 +273,7 @@ public class DrawCanvas extends Canvas {
 
         for (int y = 0; y < NUM_ROWS; y++) {
             for (int x = 0; x < NUM_COLS; x++) {
-                comp.append(table.score[x][y]).append("\t");
+                comp.append(board.score[x][y]).append("\t");
             }
             comp.append("\n");
         }
@@ -241,7 +282,7 @@ public class DrawCanvas extends Canvas {
 
         for (int y = 0; y < NUM_ROWS; y++) {
             for (int x = 0; x < NUM_COLS; x++) {
-                user.append(table.scoreUser[x][y]).append("\t");
+                user.append(board.scoreUser[x][y]).append("\t");
             }
             user.append("\n");
         }
@@ -257,24 +298,23 @@ public class DrawCanvas extends Canvas {
         public void mouseClicked(MouseEvent e) {
             super.mouseClicked(e);
 
-            int x = e.getX() / CELL_SIZE;
-            int y = e.getY() / CELL_SIZE;
+            Point userSelectPoint = getBoardPoint(e.getX(), e.getY());
+            Point computerSelectPoint;
 
-            if (insideBoard(x, y) && table.cell[x][y] == 0) {
+            if (insideBoard(userSelectPoint) && board.get(userSelectPoint) == 0) {
 
                 // Người chơi đánh
-                table.cell[x][y] = USER;
-                countXO++;
-                drawCell(getGraphics(), x, y, true);
+                userPlay(userSelectPoint);
 
-                drawCell(getGraphics(), lastComputerX, lastComputerY, false);
+                // Bỏ highlight nước đánh gần nhất của COMPUTER
+                drawCell(getGraphics(), lastCompPoint, false);
 
-                if (!checkEndGame(x, y)) {
+                if (!checkEndGame(userSelectPoint)) {
                     // Nếu người chơi đánh nhưng chưa thể kết thúc game
                     // Thì đến lượt máy đánh
 
                     // Tìm kiếm nước đi kế tiếp
-                    table.findSolution();
+                    computerSelectPoint = board.findSolution();
 
                     showScoreBoard();
 
@@ -286,15 +326,10 @@ public class DrawCanvas extends Canvas {
                     }
 
                     // Máy đánh
-                    table.cell[table.resX][table.resY] = COMPUTER;
-                    countXO++;
-                    drawCell(getGraphics(), table.resX, table.resY, true);
-
-                    lastComputerX = table.resX;
-                    lastComputerY = table.resY;
+                    computerPlay(computerSelectPoint);
 
                     // Kiểm tra xem máy đánh thì có kết thúc ván đấu hay chưa
-                    checkEndGame(x, y);
+                    checkEndGame(computerSelectPoint);
                 }
 
             }
@@ -309,21 +344,22 @@ public class DrawCanvas extends Canvas {
 
             // Highlight ô cờ đang được rê chuột
 
-            int x = e.getX() / CELL_SIZE;
-            int y = e.getY() / CELL_SIZE;
+            Point p = getBoardPoint(e.getX(), e.getY());
 
-            if (lastX == x && lastY == y) {
+            if (lastHoverPoint.equals(p)) {
                 return;
             }
-            if (lastX >= 0 || lastY >= 0) {
-                drawCell(getGraphics(), lastX, lastY, false);
-            }
-            if (insideBoard(x, y)) {
-                drawCell(getGraphics(), x, y, true);
+
+            // Bỏ highlight ô cũ
+            if (insideBoard(lastHoverPoint)) {
+                drawCell(getGraphics(), lastHoverPoint, false);
             }
 
-            lastX = x;
-            lastY = y;
+            // Highlight ô đang hover
+            if (insideBoard(p)) {
+                drawCell(getGraphics(), p, true);
+                lastHoverPoint.setLocation(p.x, p.y);
+            }
         }
     }
 
