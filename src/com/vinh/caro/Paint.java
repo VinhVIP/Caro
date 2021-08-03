@@ -13,6 +13,7 @@ public class Paint extends JFrame {
     private JPanel rootPanel;
     private JTextArea txtUser;
     private JButton btnUndo;
+    private JButton btnInfo;
 
     private final DrawCanvas canvas;
 
@@ -22,10 +23,11 @@ public class Paint extends JFrame {
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         setResizable(false);
 
-        txtComputer.setTabSize(3);
-        txtUser.setTabSize(3);
+        txtComputer.setTabSize(5);
+        txtUser.setTabSize(5);
 
-        btnUndo.addActionListener(v->undo());
+        btnUndo.addActionListener(v -> undo());
+        btnInfo.addActionListener(v -> showInfo());
 
         canvas = new DrawCanvas(this);
         mainPanel.add(canvas);
@@ -38,8 +40,12 @@ public class Paint extends JFrame {
         newGame();
     }
 
-    public void undo(){
+    public void undo() {
         canvas.undo();
+    }
+
+    public void showInfo() {
+        new Information();
     }
 
     public void newGame() {

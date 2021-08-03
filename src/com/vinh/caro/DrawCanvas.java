@@ -19,8 +19,8 @@ public class DrawCanvas extends Canvas {
 
     private final Paint paint;
     private final Board board;    // Lớp cài đặt giải thuật tìm nước cờ đánh kế tiếp
-    private Stack<Point> userPoints, compPoints;
-    private Random r;
+    private final Stack<Point> userPoints, compPoints;   // Stack lưu lại các nước đánh (undo)
+    private final Random random;
 
     private int countXO = 0;    // Đếm số lượng quân cờ đã được đánh
     private final Point lastHoverPoint, lastCompPoint;
@@ -44,7 +44,7 @@ public class DrawCanvas extends Canvas {
         userPoints = new Stack<>();
         compPoints = new Stack<>();
 
-        r = new Random();
+        random = new Random();
 
         board = new Board();
     }
@@ -84,8 +84,8 @@ public class DrawCanvas extends Canvas {
      * Máy đánh trước, random 1 điểm bất kì trên bàn cờ
      */
     private void computerFirst() {
-        int x = Math.abs(r.nextInt()) % (NUM_COLS - NUM_COLS / 2) + NUM_COLS / 4;
-        int y = Math.abs(r.nextInt()) % (NUM_ROWS - NUM_ROWS / 2) + NUM_ROWS / 4;
+        int x = Math.abs(random.nextInt()) % (NUM_COLS - NUM_COLS / 2) + NUM_COLS / 4;
+        int y = Math.abs(random.nextInt()) % (NUM_ROWS - NUM_ROWS / 2) + NUM_ROWS / 4;
 
         computerPlay(new Point(x, y));
     }
@@ -122,7 +122,7 @@ public class DrawCanvas extends Canvas {
         countXO++;
         drawCell(getGraphics(), p, true);
 
-        lastCompPoint.setLocation(p.x, p.y);
+        lastCompPoint.move(p.x, p.y);
         compPoints.push(p);
     }
 
@@ -166,7 +166,7 @@ public class DrawCanvas extends Canvas {
      * Vẽ quân X hoặc O tương ứng lên ô cờ
      *
      * @param g
-     * @param p
+     * @param p tọa độ vẽ
      */
     private void drawXO(Graphics g, Point p) {
 
@@ -196,7 +196,7 @@ public class DrawCanvas extends Canvas {
         Point p = new Point();
         for (int i = 0; i < NUM_COLS; i++) {
             for (int j = 0; j < NUM_ROWS; j++) {
-                p.setLocation(i, j);
+                p.move(i, j);
                 drawXO(g, p);
             }
         }
@@ -239,8 +239,9 @@ public class DrawCanvas extends Canvas {
             return true;
         } else if (board.checkWin()) {
             drawCell(getGraphics(), p, false);
+            drawCell(getGraphics(), lastHoverPoint, false);
 
-            p.setLocation(board.wx, board.wy);
+            p.move(board.winPoint.x, board.winPoint.y);
             int k = 0;
             while (k++ < 5) {
                 drawCell(getGraphics(), p, true);
@@ -273,7 +274,7 @@ public class DrawCanvas extends Canvas {
 
         for (int y = 0; y < NUM_ROWS; y++) {
             for (int x = 0; x < NUM_COLS; x++) {
-                comp.append(board.score[x][y]).append("\t");
+                comp.append(board.scoreComp[x][y]).append("\t");
             }
             comp.append("\n");
         }
@@ -358,7 +359,7 @@ public class DrawCanvas extends Canvas {
             // Highlight ô đang hover
             if (insideBoard(p)) {
                 drawCell(getGraphics(), p, true);
-                lastHoverPoint.setLocation(p.x, p.y);
+                lastHoverPoint.move(p.x, p.y);
             }
         }
     }

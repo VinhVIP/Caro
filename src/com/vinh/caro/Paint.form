@@ -54,7 +54,9 @@
                     <preferred-size width="700" height="350"/>
                   </grid>
                 </constraints>
-                <properties/>
+                <properties>
+                  <font name="Monospaced" size="12"/>
+                </properties>
               </component>
             </children>
           </grid>
@@ -88,11 +90,13 @@
                     <preferred-size width="700" height="350"/>
                   </grid>
                 </constraints>
-                <properties/>
+                <properties>
+                  <font name="Monospaced" size="12"/>
+                </properties>
               </component>
             </children>
           </grid>
-          <grid id="8a500" layout-manager="GridLayoutManager" row-count="1" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+          <grid id="8a500" layout-manager="GridLayoutManager" row-count="1" column-count="4" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
             <margin top="0" left="0" bottom="0" right="0"/>
             <constraints>
               <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="4" fill="0" indent="0" use-parent-layout="false">
@@ -106,7 +110,7 @@
             <children>
               <component id="6c0bb" class="javax.swing.JButton" binding="btnUndo">
                 <constraints>
-                  <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
+                  <grid row="0" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
                 </constraints>
                 <properties>
                   <background color="-14876676"/>
@@ -115,8 +119,23 @@
               </component>
               <hspacer id="1a963">
                 <constraints>
-                  <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false">
+                  <grid row="0" column="3" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false">
                     <preferred-size width="20" height="-1"/>
+                  </grid>
+                </constraints>
+              </hspacer>
+              <component id="a9a63" class="javax.swing.JButton" binding="btnInfo">
+                <constraints>
+                  <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties>
+                  <text value="Info"/>
+                </properties>
+              </component>
+              <hspacer id="919f3">
+                <constraints>
+                  <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false">
+                    <preferred-size width="30" height="-1"/>
                   </grid>
                 </constraints>
               </hspacer>

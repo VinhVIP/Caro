@@ -47,6 +47,7 @@ public class Prepare extends JDialog {
         groupXO.add(radioO);
         radioX.setSelected(true);
 
+        this.setTitle("Cài đặt");
         this.pack();
         this.setLocation(700, 300);
         this.setVisible(true);
