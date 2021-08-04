@@ -2,13 +2,15 @@ package com.vinh.caro;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.datatransfer.Clipboard;
-import java.awt.datatransfer.StringSelection;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 
 public class Information extends JDialog {
     private JPanel contentPane;
     private JButton buttonOK;
-    private JButton btnClipBoard;
+    private JButton btnOpenSource;
     private JLabel labelSrc;
 
     public Information() {
@@ -18,11 +20,12 @@ public class Information extends JDialog {
 
         buttonOK.addActionListener(e -> onOK());
 
-        btnClipBoard.addActionListener(e -> {
-            String src = labelSrc.getText();
-            StringSelection stringSelection = new StringSelection(src);
-            Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-            clipboard.setContents(stringSelection, null);
+        btnOpenSource.addActionListener(e -> {
+            try {
+                openWebpage(new URL(labelSrc.getText()));
+            } catch (MalformedURLException malformedURLException) {
+                malformedURLException.printStackTrace();
+            }
         });
 
 
@@ -36,5 +39,28 @@ public class Information extends JDialog {
     private void onOK() {
         // add your code here
         dispose();
+    }
+
+
+    public boolean openWebpage(URL url) {
+        try {
+            return openWebpage(url.toURI());
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public boolean openWebpage(URI uri) {
+        Desktop desktop = Desktop.isDesktopSupported() ? Desktop.getDesktop() : null;
+        if (desktop != null && desktop.isSupported(Desktop.Action.BROWSE)) {
+            try {
+                desktop.browse(uri);
+                return true;
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return false;
     }
 }
