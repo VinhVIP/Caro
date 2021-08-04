@@ -142,7 +142,7 @@ public class Board {
      * @param score  mảng điểm tương ứng với player muốn xét
      * @param player USER hay COMPUTER
      */
-    public void evaluate(int[][] score, int player) {
+    public void heuristic(int[][] score, int player) {
         int i, j, k;
 
         // Reset mảng giá trị
@@ -196,10 +196,10 @@ public class Board {
         Point pResult = new Point();
 
         // Tính hàm heuristic độ điểm các nước cờ của USER
-        evaluate(scoreUser, USER);
+        heuristic(scoreUser, USER);
 
         // Tính hàm heuristic độ điểm các nước cờ của COMPUTER
-        evaluate(scoreComp, COMPUTER);
+        heuristic(scoreComp, COMPUTER);
 
         maxUser = maxComp = 0;
 
