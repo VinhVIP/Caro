@@ -207,7 +207,7 @@ public class DrawCanvas extends Canvas {
     /**
      * Reset để chơi ván mới
      */
-    private void reset() {
+    public void reset() {
         countXO = 0;
         paint.setUserBoard("");
         paint.setComputerBoard("");
@@ -235,7 +235,7 @@ public class DrawCanvas extends Canvas {
         if (countXO == NUM_ROWS * NUM_COLS) {
             JOptionPane.showMessageDialog(null, "Hòa!");
             reset();
-            paint.newGame();
+            paint.setupNewGame();
             return true;
         } else if (board.checkWin()) {
             drawCell(getGraphics(), p, false);
@@ -259,7 +259,7 @@ public class DrawCanvas extends Canvas {
 
             JOptionPane.showMessageDialog(null, mess);
             reset();
-            paint.newGame();
+            paint.setupNewGame();
             return true;
         }
 

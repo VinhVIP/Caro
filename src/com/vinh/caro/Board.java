@@ -23,7 +23,7 @@ public class Board {
 
     private final Random random;
 
-    private final int[] directX = {0, 1, 1, 1};
+    private final int[] directX = {0, 1, 1, 1};     // hướng duyệt đường 5
     private final int[] directY = {1, 0, 1, -1};
 
 
@@ -106,23 +106,22 @@ public class Board {
         // Giá trị ước lượng = 10^(n-1)  (với n là số quân cờ của USER/COMPUTER tùy theo loại cờ đáng xét)
         while (--cnt > 0) mark *= 10;
 
-        // isNotBlocked: là xác định đường 5 có bị chặn 2 đầu bởi quân cờ đối thủ hay k?
-        boolean isNotBlocked = true;
-
-        // Xét chặn 2 đầu trên đường duyệt 5 (k tính bị chặn bởi đường biên)
+        // isSerious: là xác định đường 5 có nguy hiểm hay không
+        // nguy hiểm là 2 ô cờ ở 2 đầu ngoài đường 5 dều không phải là loại quân cờ đang xét
+        boolean isSerious = true;
 
         if (insideBoard(p)) {
-            isNotBlocked = cell[p.x][p.y] != player;
+            isSerious = cell[p.x][p.y] != player;
         }
 
         p.move(p.x - 6 * dx, p.y - 6 * dy);
 
         if (insideBoard(p)) {
-            isNotBlocked = isNotBlocked && cell[p.x][p.y] != player;
+            isSerious = isSerious && cell[p.x][p.y] != player;
         }
 
-        // Nếu không bị chặn 2 đầu, ước lượng điểm x2
-        if (isNotBlocked) mark *= 2;
+        // Nếu là đường cờ nguy hiểm, điểm x2
+        if (isSerious) mark *= 2;
 
         // Duyệt lại đường 5, cập nhật giá trị ước lượng điểm của mỗi ô
         p.move(point.x, point.y);

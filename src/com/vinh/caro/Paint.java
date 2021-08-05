@@ -14,6 +14,7 @@ public class Paint extends JFrame {
     private JTextArea txtUser;
     private JButton btnUndo;
     private JButton btnInfo;
+    private JButton btnNewGame;
 
     private final DrawCanvas canvas;
 
@@ -28,6 +29,7 @@ public class Paint extends JFrame {
 
         btnUndo.addActionListener(v -> undo());
         btnInfo.addActionListener(v -> showInfo());
+        btnNewGame.addActionListener(v -> newGame());
 
         canvas = new DrawCanvas(this);
         mainPanel.add(canvas);
@@ -37,7 +39,7 @@ public class Paint extends JFrame {
         setLocation(150, 50);
         setVisible(true);
 
-        newGame();
+        setupNewGame();
     }
 
     public void undo() {
@@ -48,7 +50,12 @@ public class Paint extends JFrame {
         new Information();
     }
 
-    public void newGame() {
+    public void newGame(){
+        canvas.reset();
+        setupNewGame();
+    }
+
+    public void setupNewGame() {
         new Prepare(this);
     }
 
